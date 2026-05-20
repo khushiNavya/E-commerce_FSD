@@ -4,13 +4,11 @@ import { signupUrl, loginUrl } from "../Constants";
 import { useDispatch } from "react-redux";
 import { setUser } from "../app/UserSlice";
 import { useNavigate } from "react-router-dom";
-
 const signupText = {
   infoText: "Already a user",
   buttonText: "Login",
   buttonText2: "Signup",
 };
-
 const loginText = {
   infoText: "Don't have an account",
   buttonText: "Signup",
@@ -41,33 +39,38 @@ const Signup = () => {
 
   function checkValidation() {
     if (!formState.email) {
-      setError({ error: "Please enter the email" });
+      setError({
+        error: "Please enter the email",
+      });
       return false;
     } else if (!formState.password) {
-      setError({ error: "Please enter the password" });
+      setError({
+        error: "Please enter the password",
+      });
       return false;
     } else if (!isValidEmail(formState.email)) {
-      setError({ emailError: "Please enter a valid email" });
+      setError({
+        emailError: "Please enter a valid email",
+      });
       return false;
     } else if (!isValidPassword(formState.password)) {
       setError({
         passwordError:
-          "Your password must contain lowercase, uppercase, number, special character",
+          "Your password must contain small case and uppercase letter , a number and special character",
       });
       return false;
     }
     return true;
   }
 
-  // ✅ FIXED SIGNUP / LOGIN FUNCTION
   const signup = async () => {
-    if (!checkValidation()) return;
-
+    if (!checkValidation()) {
+      return;
+    }
     setIsLoading(true);
-
+   
     try {
       const url = isSignup ? signupUrl : loginUrl;
-
       const apiData = await fetch(url, {
         method: "POST",
         headers: {
@@ -76,64 +79,30 @@ const Signup = () => {
         body: JSON.stringify(formState),
         credentials: "include",
       });
-
       const jsonData = await apiData.json();
-      console.log("API RESPONSE:", jsonData);
-
-      // ❌ HTTP error handling
-      if (!apiData.ok) {
+      console.log(jsonData);
+      const error = jsonData.error;
+      if (error) {
         setError({
-          emailError: null,
-          passwordError: null,
-          error: jsonData?.error || "Request failed",
+          error: error,
         });
-        return;
-      }
-
-      // ❌ backend error
-      if (jsonData?.error) {
-        setError({
-          emailError: null,
-          passwordError: null,
-          error: jsonData.error,
-        });
-        return;
-      }
-
-      // ✅ success case
-      if (jsonData?.res) {
+      } else {
         dispatch(setUser(jsonData.res));
         navigate("/");
-
         setFormState({
           name: "",
           email: "",
           password: "",
         });
-
         setError({
           emailError: null,
           passwordError: null,
           error: null,
         });
-      } else {
-        setError({
-          emailError: null,
-          passwordError: null,
-          error: "Invalid response from server",
-        });
       }
     } catch (err) {
-      console.log("ERROR:", err);
-
-      setError({
-        emailError: null,
-        passwordError: null,
-        error: "Network error. Please try again.",
-      });
+      console.log(JSON.stringify(err));
     } finally {
-      setIsLoading(false);
-
       setTimeout(() => {
         setError({
           emailError: null,
@@ -141,18 +110,17 @@ const Signup = () => {
           error: null,
         });
       }, 3000);
+      setIsLoading(false);
     }
   };
 
   const genricError = error?.error;
-
   return (
     <div className="h-screen w-screen">
       <Navbar />
       <div className="h-full w-full flex justify-center items-center">
         <div className="glass h-2/3 w-1/3 flex justify-center items-center flex-col pb-13">
-          <h1 className="text-3xl">Welcome to Shopsy</h1>
-
+          <h1 className="text-3xl"> Welcome to Shopsy </h1>
           {isSignup ? (
             <FieldSet
               data={{
@@ -168,7 +136,6 @@ const Signup = () => {
               }}
             />
           ) : null}
-
           <FieldSet
             data={{
               label: "Email",
@@ -183,7 +150,6 @@ const Signup = () => {
               },
             }}
           />
-
           <FieldSet
             data={{
               label: "Password",
@@ -199,19 +165,18 @@ const Signup = () => {
               },
             }}
           />
-
           {genricError ? (
             <p className="text-red-500 mt-2">{genricError}</p>
-          ) : null}
-
-          <button onClick={signup} className="btn mt-3 w-2/4">
+          ) : (
+            <></>
+          )}
+          <button onClick={signup} className="btn  mt-3 w-2/4">
             {isLoading ? (
               <span className="loading loading-spinner"></span>
             ) : (
               buttonText2
             )}
           </button>
-
           <p className="mt-5">
             {infoText}
             <button
@@ -235,3 +200,46 @@ const Signup = () => {
 };
 
 export default Signup;
+
+function FieldSet({ data }) {
+  if (!data) return null;
+  const { label, placeholder, value, setValue } = data;
+  const type = data?.type ?? "text";
+  const error = data?.error ?? null;
+  return (
+    <fieldset className="fieldset w-2/3 mb-5">
+      <legend className="fieldset-legend">{label}</legend>
+      <input
+        value={value}
+        type={type}
+        className="input"
+        placeholder={placeholder}
+        onChange={(e) => {
+          setValue(e.target.value);
+        }}
+      />
+      {error ? <p className="text-red-500 mt-2">{error}</p> : null}
+    </fieldset>
+  );
+}
+
+function isValidEmail(email) {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+  if (emailRegex.test(email)) {
+    return true;
+  }
+  return false;
+}
+function isValidPassword(password) {
+  return true;
+  // const passwordRegex =
+  //   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+  // if (passwordRegex.test(password)) {
+  //   return true;
+  // }
+  // return false;
+}
+
+// air48912
