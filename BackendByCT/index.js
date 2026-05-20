@@ -16,6 +16,9 @@ server.use(express.json());
 server.use(cookieParser());
 server.use("/products", ProductRouter);
 server.use("/users", UserRouter);
+server.get("/", (req, res) => {
+  res.send("Server Running");
+});
 
 ConnectDb()
   .then(() => {
