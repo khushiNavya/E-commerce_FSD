@@ -1,0 +1,46 @@
+// how to create your server
+import express from "express";
+
+import http from 'http';
+import fs from"fs";
+
+let ProductData=fs.readFileSync("./Data.json","utf-8");
+let jsonProductData=JSON.parse(ProductData);
+let htmlfile=fs.readFileSync("./index.html","utf-8");
+let PORT=8080;
+
+const server = express();
+
+
+server.use(express.json());//to parse the body data 
+
+server.use("/",(req,res,next)=>{// custom + application middleware 
+    console.log(req.ip,req.headers['content-type']);
+    next();
+})
+
+server.get("/",(req,res)=>{//getting html data
+    res.send("<h1>Hello</h1>");
+})
+server.get("/queryparams",(req,res)=>{//queryparams
+   const query = req.query;
+    res.send(query);
+})
+server.put("/",(req,res)=>{
+    res.send({res: "put"});
+})
+server.patch("/",(req,res)=>{
+    res.send({res: "patch"});
+})
+server.delete("/",(req,res)=>{
+    res.send({res: "delete"});
+})
+server.get("/products/:id",(req,res)=>{//params
+    const id=req.params.id;
+    res.send(jsonProductData[id-1]);
+})
+
+
+server.listen(PORT, () => {
+    console.log("Server is running on",PORT);
+});
